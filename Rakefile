@@ -1,6 +1,7 @@
 require 'rubygems'
 require 'rake'
 require 'echoe'
+require 'rspec/core/rake_task'
 
 Echoe.new('jwt', '0.1.5') do |p|
   p.description    = "JSON Web Token implementation in Ruby"
@@ -12,6 +13,6 @@ Echoe.new('jwt', '0.1.5') do |p|
   p.development_dependencies = ["echoe >=4.6.3"]
 end
 
-task :test do
-  sh "rspec spec/jwt_spec.rb"
-end
+# Define a 'spec' task, make it default
+RSpec::Core::RakeTask.new(:spec)
+task :default => :spec
