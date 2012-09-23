@@ -5,68 +5,68 @@ describe JWT do
     @payload = {"foo" => "bar"}
   end
 
-  it "encodes and decodes JWTs" do
+  it "encodes and decodes JWSs" do
     secret = "secret"
-    jwt = JWT.encode(@payload, secret)
-    decoded_payload = JWT.decode(jwt, secret)
+    jwt = JWS.encode(@payload, secret)
+    decoded_payload = JWS.decode(jwt, secret)
     decoded_payload.should == @payload
   end
 
-  it "encodes and decodes JWTs for RSA signatures" do
+  it "encodes and decodes JWSs for RSA signatures" do
     private_key = OpenSSL::PKey::RSA.generate(512)
-    jwt = JWT.encode(@payload, private_key, "RS256")
-    decoded_payload = JWT.decode(jwt, private_key.public_key)
+    jwt = JWS.encode(@payload, private_key, "RS256")
+    decoded_payload = JWS.decode(jwt, private_key.public_key)
     decoded_payload.should == @payload
   end
 
-  it "encodes and decodes JWTs with custom header fields" do
+  it "encodes and decodes JWSs with custom header fields" do
     private_key = OpenSSL::PKey::RSA.generate(512)
-    jwt = JWT.encode(@payload, private_key, "RS256", {"kid" => 'default'})
-    decoded_payload = JWT.decode(jwt) do |header|
+    jwt = JWS.encode(@payload, private_key, "RS256", {"kid" => 'default'})
+    decoded_payload = JWS.decode(jwt) do |header|
       header["kid"].should == 'default'
       private_key.public_key
     end
     decoded_payload.should == @payload
   end
 
-  it "decodes valid JWTs" do
+  it "decodes valid JWSs" do
     example_payload = {"hello" => "world"}
     example_secret = 'secret'
     example_jwt = 'eyJhbGciOiAiSFMyNTYiLCAidHlwIjogIkpXVCJ9.eyJoZWxsbyI6ICJ3b3JsZCJ9.tvagLDLoaiJKxOKqpBXSEGy7SYSifZhjntgm9ctpyj8'
-    decoded_payload = JWT.decode(example_jwt, example_secret)
+    decoded_payload = JWS.decode(example_jwt, example_secret)
     decoded_payload.should == example_payload
   end
 
   it "raises exception with wrong hmac key" do
     right_secret = 'foo'
     bad_secret = 'bar'
-    jwt_message = JWT.encode(@payload, right_secret, "HS256")
-    lambda { JWT.decode(jwt_message, bad_secret) }.should raise_error(JWT::DecodeError)
+    jwt_message = JWS.encode(@payload, right_secret, "HS256")
+    lambda { JWS.decode(jwt_message, bad_secret) }.should raise_error(JWT::DecodeError)
   end
 
   it "raises exception with wrong rsa key" do
     right_private_key = OpenSSL::PKey::RSA.generate(512)
     bad_private_key = OpenSSL::PKey::RSA.generate(512)
-    jwt = JWT.encode(@payload, right_private_key, "RS256")
-    lambda { JWT.decode(jwt, bad_private_key.public_key) }.should raise_error(JWT::DecodeError)
+    jwt = JWS.encode(@payload, right_private_key, "RS256")
+    lambda { JWS.decode(jwt, bad_private_key.public_key) }.should raise_error(JWT::DecodeError)
   end
 
   it "allows decoding without key" do
     right_secret = 'foo'
     bad_secret = 'bar'
-    jwt = JWT.encode(@payload, right_secret)
-    decoded_payload = JWT.decode(jwt, bad_secret, false)
+    jwt = JWS.encode(@payload, right_secret)
+    decoded_payload = JWS.decode(jwt, bad_secret, false)
     decoded_payload.should == @payload
   end
 
   it "raises exception on unsupported crypto algorithm" do
-    lambda { JWT.encode(@payload, "secret", 'HS1024') }.should raise_error(NotImplementedError)
+    lambda { JWS.encode(@payload, "secret", 'HS1024') }.should raise_error(NotImplementedError)
   end
 
-  it "encodes and decodes plaintext JWTs" do
-    jwt = JWT.encode(@payload, nil, nil)
+  it "encodes and decodes plaintext JWSs" do
+    jwt = JWS.encode(@payload, nil, nil)
     jwt.split('.').length.should == 2
-    decoded_payload = JWT.decode(jwt, nil, nil)
+    decoded_payload = JWS.decode(jwt, nil, nil)
     decoded_payload.should == @payload
   end
 
@@ -92,6 +92,6 @@ PUBKEY
       'wcy1PxsROY1fmBvXSer0IQesAqOW-rPOCNReSn-eY8d53ph1x2HAF-AzEi3GOl' +
       '6hFycH8wj7Su6JqqyEbIVLxE7q7DkAZGaMPkxbTHs1EhSd5_oaKQ6O4xO3ZnnT4'
     )
-    lambda { JWT.decode(jwt, pubkey, true) }.should raise_error(JWT::DecodeError)
+    lambda { JWS.decode(jwt, pubkey, true) }.should raise_error(JWT::DecodeError)
   end
 end
