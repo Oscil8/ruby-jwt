@@ -56,6 +56,10 @@ module JWS
     rescue JSON::ParserError
       raise JWT::DecodeError.new("Invalid segment encoding")
     end
+    # TODO: need to verify that set of header params is valid
+    #    4.  The resulting JWS Header MUST be validated to only include
+    #        parameters and values whose syntax and semantics are both
+    #        understood and supported.
     if verify == true
       algo = header['alg']
 
